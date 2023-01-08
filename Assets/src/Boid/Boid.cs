@@ -11,7 +11,7 @@ public class Boid : MonoBehaviour
     public Color color = new Color(1, 1, 0.5f, 1);
     
     public float speed = 10.0f;
-    float rotationSpeed = 1.0f;
+    float rotationSpeed = 1f;
 
     List<Boid> nearbyBoids;
     public float viewRadius = 11.0f;
@@ -89,7 +89,7 @@ public class Boid : MonoBehaviour
             if(distance.magnitude > 0)
             {                
                 // Separation
-                if (distance.magnitude < viewRadius/2)
+                if (distance.magnitude < viewRadius / 2)
                 {
                     separation += distance.normalized / distance.magnitude;
                     separateCount++;
@@ -101,7 +101,7 @@ public class Boid : MonoBehaviour
                     alignmentCount++;
                 }
                 // Cohesion
-                if(distance.magnitude < viewRadius/4)
+                if(distance.magnitude < viewRadius)
                 {
                     cohesion += (Vector2)boid.transform.position;
                     cohesionCount++;
@@ -116,11 +116,15 @@ public class Boid : MonoBehaviour
             {
                 alignment /= alignmentCount;
                 alignment = Vector2.ClampMagnitude(alignment, 1);
+                alignment.Normalize();
             }
             if (cohesionCount > 0)
             {
                 cohesion /= cohesionCount;
+                cohesion = cohesion - (Vector2)transform.position; // Calculate the desired velocity to move towards the center of mass
                 cohesion = Vector2.ClampMagnitude(cohesion, 1);
+
+                cohesion.Normalize();
             }
             transform.up += (((Vector3)separation * separationWeight) + ((Vector3)alignment * alignmentWeight) + ((Vector3)cohesion * cohesionWeight)) * rotationSpeed * Time.deltaTime;
         }

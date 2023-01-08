@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using JetBrains.Annotations;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -11,16 +12,14 @@ public class Boid : MonoBehaviour
     
     private float speed = 6.0f;
     float rotationSpeed = 2.5f;
-    float viewRadius = 10.5f;
-    float separationDistance = 4.0f;
-    float alignmentDistance = 5.0f;
-
-    Vector2 Velocity;
 
     List<Boid> nearbyBoids;
-    float separationWeight = 10.0f;
-    float cohesionWeight = 1.0f;
-    float alignmentWeight = 1.0f;
+    public float viewRadius = 5.0f;
+    public float separationWeight { get; set; }
+    public float cohesionWeight { get; set; }
+    public float alignmentWeight { get; set; }
+    float separationDistance = 4.0f;
+    float alignmentDistance = 5.0f;
 
     //ScreenWrapping
     float leftConstraint = Screen.width;
@@ -39,7 +38,7 @@ public class Boid : MonoBehaviour
         spriteRenderer.sprite = Resources.Load<Sprite>("Sprites/BoidSprite");
         spriteRenderer.color = color;
         
-        transform.localScale = new Vector3(0.25f,0.25f,0.25f);
+        transform.localScale = new Vector3(0.33f,0.33f,0.33f);
         transform.Rotate(0.0f, 0.0f, Random.Range(0.0f, 360.0f));
         
         Camera cam = Camera.main;
@@ -48,8 +47,8 @@ public class Boid : MonoBehaviour
         rightConstraint = cam.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, distanceZ)).x;
         bottomConstraint = cam.ScreenToWorldPoint(new Vector3(0.0f, 0.0f, distanceZ)).y;
         topConstraint = cam.ScreenToWorldPoint(new Vector3(0.0f, Screen.height, distanceZ)).y;
-        nearbyBoids = new List<Boid>();
 
+        //CreateLineToShowRadius
         line = gameObject.GetComponent<LineRenderer>();
         line.positionCount = (segments + 1);
         line.useWorldSpace = false;
@@ -66,6 +65,9 @@ public class Boid : MonoBehaviour
     void UpdateBoid()
     {
         UpdateNearbyBoids();
+        if (nearbyBoids == null || !nearbyBoids.Any())
+            return;
+
         Vector2 separation = Vector2.zero;
         Vector2 alignment  = Vector2.zero;
         Vector2 cohesion   = Vector2.zero;
@@ -77,58 +79,55 @@ public class Boid : MonoBehaviour
         int alignmentCount = 0;
         int cohesionCount  = 0;
 
-        if (nearbyBoids != null && nearbyBoids.Any())
+        foreach (var boid in nearbyBoids)
         {
-            foreach (var boid in nearbyBoids)
-            {
-                if (boid == this) // return on self
-                    return;
+            if (boid == this) // return on self
+                return;
 
-                distance = transform.position - boid.transform.position;
+            distance = transform.position - boid.transform.position;
 
-                if(distance.magnitude > 0)
+            if(distance.magnitude > 0)
+            {                
+                // Separation
+                if (distance.magnitude < 2)
                 {
-                    // Cohesion
-                    if(distance.magnitude < 4)
-                    {
-                        cohesion += (Vector2)boid.transform.position;
-                        cohesionCount++;
-                        //Debug.DrawLine(transform.position, boid.transform.position, Color.green);
-                    }
-                    // Alignment
-                    if (distance.magnitude < 3)
-                    {
-                        alignment += (Vector2)boid.transform.up;
-                        alignmentCount++;
-                        //Debug.DrawLine(transform.position, boid.transform.position, Color.blue);
-                    }
-                    // Separation
-                    if (distance.magnitude < 2)
-                    {
-                        separation += distance.normalized / distance.magnitude;
-                        separateCount++;
-                        //Debug.DrawLine(transform.position, boid.transform.position, Color.red);
-                    }
+                    separation += distance.normalized / distance.magnitude;
+                    separateCount++;
+                }
+                // Alignment
+                if (distance.magnitude < 3)
+                {
+                    alignment += (Vector2)boid.transform.up;
+                    alignmentCount++;
+                }
+                // Cohesion
+                if(distance.magnitude < 2)
+                {
+                    cohesion += (Vector2)boid.transform.position;
+                    cohesionCount++;
                 }
             }
-            // separate average
+            // averages
             if (separateCount > 0)
             {
                 separation /= separateCount;
             }
-            // alignment average
             if (alignmentCount > 0)
             {
                 alignment /= alignmentCount;
+                alignment = Vector2.ClampMagnitude(alignment, 1);
+                alignment.Normalize();
             }
-            // cohesion average
             if (cohesionCount > 0)
             {
                 cohesion /= cohesionCount;
+                cohesion = cohesion - (Vector2)transform.position; // Calculate the desired velocity to move towards the center of mass
+                cohesion = Vector2.ClampMagnitude(cohesion, 1);
+
+                cohesion.Normalize();
             }
             transform.up += (((Vector3)separation * separationWeight) + ((Vector3)alignment * alignmentWeight) + ((Vector3)cohesion * cohesionWeight)) * rotationSpeed * Time.deltaTime;
         }
-
     }
 
     void UpdateNearbyBoids()

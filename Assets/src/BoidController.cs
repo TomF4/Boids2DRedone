@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
@@ -16,17 +15,25 @@ public class BoidController : MonoBehaviour
     public int numBoids = 50;
     public bool drawRadius = false;
 
-
     public Color colour = Color.white;
     Color tempColour = Color.white;
     
     bool userSelected = false; //user has selected a boid
 
+    
+    public float separationWeight = 0;
+    public float alignmentWeight = 0;
+    public float cohesionWeight = 0;
+
+
     void Start()
     {
         boids = new List<Boid>();
         for (int i = 0; i < numBoids; i++)
+        {
+            prefab.transform.position = new Vector3(Random.Range(-Camera.main.orthographicSize, Camera.main.orthographicSize), Random.Range(-Camera.main.orthographicSize, Camera.main.orthographicSize), 0);
             boids.Add(Instantiate(prefab));
+        }
     }
 
     void Update()
@@ -40,11 +47,10 @@ public class BoidController : MonoBehaviour
             foreach(Boid boid in boids)
             {
                 UpdateRadiusCircle(boid);
-                UpdateColour(boid, colour);  
+                UpdateColour(boid, colour);
+                UpdateBoids(boid);
             }
         }
-
-
         tempColour = colour;
     }
 
@@ -70,5 +76,12 @@ public class BoidController : MonoBehaviour
             boid.GetComponent<LineRenderer>().startColor = colour;
             boid.GetComponent<LineRenderer>().forceRenderingOff = true;  
         }
+    }
+
+    private void UpdateBoids(Boid boid)
+    {
+        boid.separationWeight = separationWeight;
+        boid.alignmentWeight  = alignmentWeight;
+        boid.cohesionWeight   = cohesionWeight;
     }
 }

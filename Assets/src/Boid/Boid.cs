@@ -14,7 +14,7 @@ public class Boid : MonoBehaviour
     float rotationSpeed = 1f;
 
     List<Boid> nearbyBoids;
-    public float viewRadius = 11.0f;
+    public float viewRadius = 15.0f;
     public float separationWeight { get; set; }
     public float cohesionWeight { get; set; }
     public float alignmentWeight { get; set; }
@@ -59,7 +59,9 @@ public class Boid : MonoBehaviour
     {
         ScreenWrap();
         UpdateBoid();
-        transform.Translate(Vector2.up * speed * Time.deltaTime);
+        transform.position += transform.up * speed * Time.deltaTime;
+        //transform.position += Mathf.Sin(transform.rotation.z) * transform.up * Time.deltaTime;
+        //transform.Translate(Vector2.up * speed * Time.deltaTime);
     }
 
     void UpdateBoid()
@@ -89,7 +91,7 @@ public class Boid : MonoBehaviour
             if(distance.magnitude > 0)
             {                
                 // Separation
-                if (distance.magnitude < viewRadius / 2)
+                if (distance.magnitude < viewRadius/3)
                 {
                     separation += distance.normalized / distance.magnitude;
                     separateCount++;
@@ -101,7 +103,7 @@ public class Boid : MonoBehaviour
                     alignmentCount++;
                 }
                 // Cohesion
-                if(distance.magnitude < viewRadius)
+                if(distance.magnitude < viewRadius /3)
                 {
                     cohesion += (Vector2)boid.transform.position;
                     cohesionCount++;
@@ -124,6 +126,7 @@ public class Boid : MonoBehaviour
                 cohesion = cohesion - (Vector2)transform.position; // Calculate the desired velocity to move towards the center of mass
                 cohesion = Vector2.ClampMagnitude(cohesion, 1);
 
+                Debug.DrawRay(transform.position, transform.up * viewRadius, Color.blue);
                 cohesion.Normalize();
             }
             transform.up += (((Vector3)separation * separationWeight) + ((Vector3)alignment * alignmentWeight) + ((Vector3)cohesion * cohesionWeight)) * rotationSpeed * Time.deltaTime;

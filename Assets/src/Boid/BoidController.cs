@@ -38,8 +38,8 @@ public class BoidController : MonoBehaviour
             boids.Add(Instantiate(prefab));
         }
 
-        alignmentWeight  = 5;
-        separationWeight = 5;
+        separationWeight = 10;
+        alignmentWeight  = 1;
         cohesionWeight = 1;
     }
 

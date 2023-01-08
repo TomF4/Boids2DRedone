@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,10 +12,14 @@ public class MapGenerator : MonoBehaviour
     [Range(0, 500)]
     public int mapSize = 1;
 
+    SpriteRenderer spriteRenderer;
+
     void Start()
     {
-        //ScreenWrapping is based on cam dimesions
         Camera.main.orthographicSize = mapSize;
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        transform.localScale = new Vector2(mapSize,mapSize);
     }
 
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.PlayerLoop;
 using UnityEngine.XR.WSA.Input;
 
@@ -19,12 +20,14 @@ public class BoidController : MonoBehaviour
     Color tempColour = Color.white;
     
     bool userSelected = false; //user has selected a boid
-
     
-    public float separationWeight = 0;
-    public float alignmentWeight = 0;
-    public float cohesionWeight = 0;
+    public float separationWeight { get; set; }
+    public float alignmentWeight { get; set; }
+    public float cohesionWeight { get; set; }
 
+    public Text alignmentText;
+    public Text cohesionText;
+    public Text separateText;
 
     void Start()
     {
@@ -34,6 +37,10 @@ public class BoidController : MonoBehaviour
             prefab.transform.position = new Vector3(Random.Range(-Camera.main.orthographicSize, Camera.main.orthographicSize), Random.Range(-Camera.main.orthographicSize, Camera.main.orthographicSize), 0);
             boids.Add(Instantiate(prefab));
         }
+
+        alignmentWeight  = 5;
+        separationWeight = 5;
+        cohesionWeight = 1;
     }
 
     void Update()
@@ -52,6 +59,10 @@ public class BoidController : MonoBehaviour
             }
         }
         tempColour = colour;
+
+        alignmentText.text = "Alignment Weight: " + alignmentWeight.ToString();
+        cohesionText.text  = "Cohesion Weight:  " + cohesionWeight.ToString();
+        separateText.text  = "Seperate Weight:  " + separationWeight.ToString();
     }
 
     public static List<Boid> GetBoids() => boids;

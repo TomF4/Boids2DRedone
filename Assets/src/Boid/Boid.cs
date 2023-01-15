@@ -11,7 +11,7 @@ public class Boid : MonoBehaviour
     public Color color = new Color(1, 1, 0.5f, 1);
     
     public float speed = 10.0f;
-    float rotationSpeed = 1f;
+    public float rotationSpeed = 0.5f;
 
     List<Boid> nearbyBoids;
     public float viewRadius = 15.0f;
@@ -90,12 +90,6 @@ public class Boid : MonoBehaviour
 
             if(distance.magnitude > 0)
             {                
-                // Separation
-                if (distance.magnitude < viewRadius/3)
-                {
-                    separation += distance.normalized / distance.magnitude;
-                    separateCount++;
-                }
                 // Alignment
                 if (distance.magnitude < viewRadius)
                 {
@@ -103,33 +97,37 @@ public class Boid : MonoBehaviour
                     alignmentCount++;
                 }
                 // Cohesion
-                if(distance.magnitude < viewRadius /3)
+                if(distance.magnitude < viewRadius)
                 {
                     cohesion += (Vector2)boid.transform.position;
+                    cohesion = (cohesion - (Vector2)transform.position); // Calculate the desired velocity to move towards the center of mass
                     cohesionCount++;
+                }
+                // Separation
+                if (distance.magnitude < 1.0f)
+                {
+                    separation += distance.normalized / distance.magnitude;
+                    separateCount++;
                 }
             }
             // averages
             if (separateCount > 0)
             {
                 separation /= separateCount;
+                separation = separation.normalized * separationWeight * rotationSpeed * Time.deltaTime;
             }
             if (alignmentCount > 0)
             {
                 alignment /= alignmentCount;
-                alignment = Vector2.ClampMagnitude(alignment, 1);
-                alignment.Normalize();
+                alignment = alignment.normalized * alignmentWeight * rotationSpeed * Time.deltaTime;
+
             }
             if (cohesionCount > 0)
             {
                 cohesion /= cohesionCount;
-                cohesion = cohesion - (Vector2)transform.position; // Calculate the desired velocity to move towards the center of mass
-                cohesion = Vector2.ClampMagnitude(cohesion, 1);
-
-                Debug.DrawRay(transform.position, transform.up * viewRadius, Color.blue);
-                cohesion.Normalize();
+                cohesion = cohesion.normalized * cohesionWeight * rotationSpeed * Time.deltaTime;
             }
-            transform.up += (((Vector3)separation * separationWeight) + ((Vector3)alignment * alignmentWeight) + ((Vector3)cohesion * cohesionWeight)) * rotationSpeed * Time.deltaTime;
+            transform.up += (((Vector3)separation) + ((Vector3)alignment) + ((Vector3)cohesion));
         }
     }
 

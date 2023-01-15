@@ -29,18 +29,24 @@ public class BoidController : MonoBehaviour
     public Text cohesionText;
     public Text separateText;
 
+    public float speed = 10.0f;
+    public float rotationSpeed = 10.0f;
+
     void Start()
     {
         boids = new List<Boid>();
+        prefab.speed = speed;
+        prefab.rotationSpeed = rotationSpeed;
+        float mapSize = 40; // find nice way to put this as cam size Camera.Main.OrthSize
         for (int i = 0; i < numBoids; i++)
         {
-            prefab.transform.position = new Vector3(Random.Range(-Camera.main.orthographicSize, Camera.main.orthographicSize), Random.Range(-Camera.main.orthographicSize, Camera.main.orthographicSize), 0);
-            boids.Add(Instantiate(prefab));
+            boids.Add(Instantiate(prefab, new Vector3(Random.Range(-mapSize, mapSize), Random.Range(-mapSize, mapSize), 0), Quaternion.identity));
         }
 
         separationWeight = 10;
-        alignmentWeight  = 1;
+        alignmentWeight = 1;
         cohesionWeight = 1;
+
     }
 
     void Update()
@@ -56,9 +62,13 @@ public class BoidController : MonoBehaviour
                 UpdateRadiusCircle(boid);
                 UpdateColour(boid, colour);
                 UpdateBoids(boid);
+                boid.speed = speed;
+                boid.rotationSpeed = rotationSpeed;
             }
         }
         tempColour = colour;
+
+
 
         alignmentText.text = "Alignment Weight: " + alignmentWeight.ToString();
         cohesionText.text  = "Cohesion Weight:  " + cohesionWeight.ToString();
